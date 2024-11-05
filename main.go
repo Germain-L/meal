@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"meals/db"
 	"meals/handlers"
 	"meals/middleware"
 	"net/http"
@@ -10,17 +11,32 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+func Connect(ctx context.Context) *db.Queries {
+	connString := os.Getenv("DATABASE_URL")
+	pool, err := pgxpool.New(ctx, connString)
+	if err != nil {
+		log.Fatalf("Unable to create connection pool: %v\n", err)
+	}
+
+	queries := db.New(pool)
+	return queries
+}
 
 func main() {
 	log.Default().SetOutput(os.Stdout)
 
 	// Create a new ServeMux
 	mux := http.NewServeMux()
+	queries := Connect(context.Background())
 
-	h := handlers.NewHandler()
+	h := handlers.NewHandler(queries)
 
 	// Register your handlers
+	mux.HandleFunc("/healthz", h.Healthz)
 	mux.HandleFunc("/ping", h.Ping)
 
 	// Wrap the mux with the middleware

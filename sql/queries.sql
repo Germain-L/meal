@@ -23,3 +23,6 @@ RETURNING *;
 DELETE FROM users
 WHERE id = $1
 RETURNING *;
+
+-- name: HealthCheck :one
+SELECT 1;
