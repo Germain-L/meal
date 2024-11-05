@@ -18,4 +18,6 @@ WORKDIR /root/
 
 COPY --from=builder /app/main .
 
+RUN echo "Starting the application..."
+
 CMD ["./main"]

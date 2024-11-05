@@ -1,17 +1,23 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"meals/handlers"
+	"meals/middleware"
+	"net/http"
 )
 
 func main() {
-	r := gin.Default()
+	// Create a new ServeMux
+	mux := http.NewServeMux()
 
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	h := handlers.NewHandler()
 
-	r.Run()
+	// Register your handlers
+	mux.HandleFunc("/ping", h.Ping)
+
+	// Wrap the mux with the middleware
+	handler := middleware.LoggingMiddleware(mux)
+
+	// Start the server
+	http.ListenAndServe(":8080", handler)
 }
