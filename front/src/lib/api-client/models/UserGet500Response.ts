@@ -16,29 +16,29 @@ import { mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface ModelError
+ * @interface UserGet500Response
  */
-export interface ModelError {
+export interface UserGet500Response {
     /**
-     * Error message describing what went wrong
+     * 
      * @type {string}
-     * @memberof ModelError
+     * @memberof UserGet500Response
      */
     error?: string;
 }
 
 /**
- * Check if a given object implements the ModelError interface.
+ * Check if a given object implements the UserGet500Response interface.
  */
-export function instanceOfModelError(value: object): value is ModelError {
+export function instanceOfUserGet500Response(value: object): value is UserGet500Response {
     return true;
 }
 
-export function ModelErrorFromJSON(json: any): ModelError {
-    return ModelErrorFromJSONTyped(json, false);
+export function UserGet500ResponseFromJSON(json: any): UserGet500Response {
+    return UserGet500ResponseFromJSONTyped(json, false);
 }
 
-export function ModelErrorFromJSONTyped(json: any, ignoreDiscriminator: boolean): ModelError {
+export function UserGet500ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): UserGet500Response {
     if (json == null) {
         return json;
     }
@@ -48,11 +48,11 @@ export function ModelErrorFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     };
 }
 
-  export function ModelErrorToJSON(json: any): ModelError {
-      return ModelErrorToJSONTyped(json, false);
+  export function UserGet500ResponseToJSON(json: any): UserGet500Response {
+      return UserGet500ResponseToJSONTyped(json, false);
   }
 
-  export function ModelErrorToJSONTyped(value?: ModelError | null, ignoreDiscriminator: boolean = false): any {
+  export function UserGet500ResponseToJSONTyped(value?: UserGet500Response | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }

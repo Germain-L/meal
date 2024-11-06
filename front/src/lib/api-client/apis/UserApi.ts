@@ -16,10 +16,16 @@
 import * as runtime from '../runtime';
 import type {
   User,
+  UserGet401Response,
+  UserGet500Response,
 } from '../models/index';
 import {
     UserFromJSON,
     UserToJSON,
+    UserGet401ResponseFromJSON,
+    UserGet401ResponseToJSON,
+    UserGet500ResponseFromJSON,
+    UserGet500ResponseToJSON,
 } from '../models/index';
 
 /**
