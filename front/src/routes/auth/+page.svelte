@@ -4,6 +4,12 @@
 	function toggleAuthMode() {
 		isSignUp = !isSignUp;
 	}
+
+	let name = '';
+	let email = '';
+	let password = '';
+
+	const signin = async () => {};
 </script>
 
 <div class="flex min-h-screen items-center justify-center bg-gray-100">
