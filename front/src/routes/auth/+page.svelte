@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { authApi } from '$lib/api';
-	import { LoginRequestFromJSON, ResponseError, SignupRequestFromJSON, type ErrorContext } from '$lib/api-client';
+	import { LoginRequestFromJSON, ResponseError, SignupRequestFromJSON } from '$lib/api-client';
 
 	let isSignUp = false;
 
@@ -14,34 +14,42 @@
 	let error = '';
 
 	const signin = async () => {
-		const postParams = LoginRequestFromJSON({
-			username: email,
-			password: password
-		});
-
 		try {
-			await authApi.loginPost({ loginRequest: postParams });
-			error = ''; // Clear error on successful login
-		} catch (e: any) {
-			console.log(e.message);
-            console.log(e)
-			error = e.message || 'An error occurred during sign in';
+			const loginRequest = LoginRequestFromJSON({ username: email, password });
+			await authApi.loginPost({ loginRequest });
+			// Handle successful sign in
+		} catch (err) {
+			if (err instanceof ResponseError) {
+				const responseText = await err.response.text();
+				try {
+					const errorContext = JSON.parse(responseText);
+					error = errorContext.error || 'An error occurred during sign in.';
+				} catch {
+					error = responseText || 'An error occurred during sign in.';
+				}
+			} else {
+				error = 'An unexpected error occurred.';
+			}
 		}
 	};
 
 	const signup = async () => {
-		const postParams = SignupRequestFromJSON({
-			username: name,
-			email,
-			password
-		});
-
 		try {
-			const response = await authApi.signupPost({ signupRequest: postParams });
-			error = ''; // Clear error on successful signup
-		} catch (e: any) {
-			console.table(e);
-			error = e.message || 'An error occurred during sign up';
+			const signupRequest = SignupRequestFromJSON({ name, username: email, password });
+			await authApi.signupPost({ signupRequest });
+			// Handle successful sign up
+		} catch (err) {
+			if (err instanceof ResponseError) {
+				const responseText = await err.response.text();
+				try {
+					const errorContext = JSON.parse(responseText);
+					error = errorContext.error || 'An error occurred during sign up.';
+				} catch {
+					error = responseText || 'An error occurred during sign up.';
+				}
+			} else {
+				error = 'An unexpected error occurred.';
+			}
 		}
 	};
 </script>
