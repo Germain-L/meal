@@ -101,15 +101,42 @@ components:
       properties:
         error:
           type: string
+          description: Error message describing what went wrong
           example: "Invalid credentials"
 
   responses:
-    UnauthorizedError:
-      description: Access token is missing or invalid
+    BadRequestError:
+      description: The request was malformed or contained invalid parameters
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Invalid request payload"
+
+    UnauthorizedError:
+      description: Authentication is required or the provided credentials are invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Missing Authorization header"
+
+    InternalServerError:
+      description: An unexpected error occurred on the server
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Could not create user"
 
   securitySchemes:
     BearerAuth:
@@ -138,17 +165,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         '400':
-          description: Invalid request payload
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/BadRequestError'
         '500':
-          description: Server error
+          description: Could not create user
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Could not hash password"
 
   /login:
     post:
@@ -164,18 +191,32 @@ paths:
       responses:
         '200':
           description: Successfully authenticated. Tokens are set as HTTP-only cookies.
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           description: Invalid credentials
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum:
+                      - "User not found"
+                      - "Invalid credentials"
         '500':
-          description: Server error
+          description: Token generation failed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum:
+                      - "Could not generate access token"
+                      - "Could not generate refresh token"
 
   /refresh:
     post:
@@ -199,8 +240,20 @@ paths:
                   access_token:
                     type: string
                     example: "eyJhbGciOiJIUzI1NiIs..."
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum:
+                      - "Invalid refresh token"
+                      - "Invalid token claims"
 
   /user:
     get:
@@ -217,13 +270,27 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '500':
-          description: Server error
+          description: Authentication required
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum:
+                      - "Missing Authorization header"
+                      - "Invalid token"
+        '500':
+          description: Could not fetch user account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Could not get user account"
 
   /healthz:
     get:
@@ -232,13 +299,13 @@ paths:
         - System
       responses:
         '200':
-          description: Service health status
+          description: Service is healthy
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
         '500':
-          description: Service unhealthy
+          description: Service is unhealthy
           content:
             application/json:
               schema:
