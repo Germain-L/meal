@@ -1,4 +1,7 @@
 <script>
+	import { authApi } from '$lib/api';
+	import { LoginRequestFromJSON, SignupRequestFromJSON } from '$lib/api-client';
+
 	let isSignUp = false;
 
 	function toggleAuthMode() {
@@ -9,7 +12,24 @@
 	let email = '';
 	let password = '';
 
-	const signin = async () => {};
+	const signin = async () => {
+		const postParams = LoginRequestFromJSON({
+			username: email,
+			password: password
+		});
+		const s = await authApi.loginPost({ loginRequest: postParams });
+		console.log(s);
+	};
+
+	const signup = async () => {
+		const postParams = SignupRequestFromJSON({
+			username: name,
+			email,
+			password
+		});
+		const s = await authApi.signupPost({ signupRequest: postParams });
+		console.log(s);
+	};
 </script>
 
 <div class="flex min-h-screen items-center justify-center bg-gray-100">
@@ -30,6 +50,7 @@
 						id="name"
 						type="text"
 						placeholder="Name"
+						bind:value={name}
 					/>
 				</div>
 			{/if}
@@ -40,6 +61,7 @@
 					id="email"
 					type="email"
 					placeholder="Email"
+					bind:value={email}
 				/>
 			</div>
 			<div class="mb-6">
@@ -49,12 +71,14 @@
 					id="password"
 					type="password"
 					placeholder="Password"
+					bind:value={password}
 				/>
 			</div>
 			<div class="flex items-center justify-between">
 				<button
 					class="focus:shadow-outline rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
 					type="button"
+					on:click={isSignUp ? signup : signin}
 				>
 					{#if isSignUp}
 						Sign Up
