@@ -15,6 +15,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+func setupLogger() {
+	log.Default().SetOutput(os.Stdout)
+}
+
 func Connect(ctx context.Context) *db.Queries {
 	connString := os.Getenv("DATABASE_URL")
 	pool, err := pgxpool.New(ctx, connString)
@@ -26,50 +30,66 @@ func Connect(ctx context.Context) *db.Queries {
 	return queries
 }
 
-func main() {
-	log.Default().SetOutput(os.Stdout)
-
-	// Create a new ServeMux
+func setupRoutes(h *handlers.Handler) http.Handler {
+	// Main routes
 	mux := http.NewServeMux()
-	queries := Connect(context.Background())
-
-	h := handlers.NewHandler(queries)
-
-	// Register your handlers
+	mux.HandleFunc("/login", h.Login)
+	mux.HandleFunc("/signup", h.Signup)
+	mux.HandleFunc("/refresh", h.Refresh)
 	mux.HandleFunc("/healthz", h.Healthz)
 	mux.HandleFunc("/ping", h.Ping)
 
-	// Wrap the mux with the middleware
-	handler := middleware.LoggingMiddleware(mux)
+	// Protected routes
+	protectedMux := http.NewServeMux()
+	protectedMux.HandleFunc("/user", h.GetUserAccount)
+	protectedHandler := middleware.AuthMiddleware(protectedMux)
 
-	// Create an http.Server
-	server := &http.Server{
+	// Combine handlers
+	mainHandler := http.NewServeMux()
+	mainHandler.Handle("/", mux)
+	mainHandler.Handle("/user", protectedHandler)
+
+	return middleware.LoggingMiddleware(mainHandler)
+}
+
+func createServer(handler http.Handler) *http.Server {
+	return &http.Server{
 		Addr:    ":8080",
 		Handler: handler,
 	}
+}
 
-	// Run the server in a goroutine
-	go func() {
-		log.Printf("Listening on port %s", "8080")
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("ListenAndServe(): %v", err)
-		}
-	}()
-
-	// Wait for interrupt signal to gracefully shutdown the server
+func gracefulShutdown(server *http.Server) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server...")
 
-	// Create a context with timeout for the shutdown
+	log.Println("Shutting down server...")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Shutdown the server
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatalf("Server Shutdown: %v", err)
 	}
-
 	log.Println("Server exited properly")
+}
+
+func startServer(server *http.Server) {
+	log.Printf("Listening on port %s", "8080")
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("ListenAndServe(): %v", err)
+	}
+}
+
+func main() {
+	setupLogger()
+
+	queries := Connect(context.Background())
+	h := handlers.NewHandler(queries)
+
+	handler := setupRoutes(h)
+	server := createServer(handler)
+
+	go startServer(server)
+	gracefulShutdown(server)
 }
