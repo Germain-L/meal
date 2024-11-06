@@ -60,7 +60,9 @@ func setupRoutes(h *handlers.Handler) http.Handler {
 	mainHandler.Handle("/", mux)
 	mainHandler.Handle("/user", protectedHandler)
 
-	return middleware.LoggingMiddleware(mainHandler)
+	// Apply middlewares in order: CORS -> Logging
+	handler := middleware.CorsMiddleware(mainHandler)
+	return middleware.LoggingMiddleware(handler)
 }
 
 func createServer(handler http.Handler) *http.Server {
