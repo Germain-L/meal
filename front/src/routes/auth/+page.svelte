@@ -1,102 +1,123 @@
-<script>
-	import { authApi } from '$lib/api';
-	import { LoginRequestFromJSON, SignupRequestFromJSON } from '$lib/api-client';
+<script lang="ts">
+    import { authApi } from '$lib/api';
+    import { LoginRequestFromJSON, SignupRequestFromJSON } from '$lib/api-client';
 
-	let isSignUp = false;
+    let isSignUp = false;
 
-	function toggleAuthMode() {
-		isSignUp = !isSignUp;
-	}
+    function toggleAuthMode() {
+        isSignUp = !isSignUp;
+    }
 
-	let name = '';
-	let email = '';
-	let password = '';
+    let name = '';
+    let email = '';
+    let password = '';
+    let error = '';
 
-	const signin = async () => {
-		const postParams = LoginRequestFromJSON({
-			username: email,
-			password: password
-		});
-		const s = await authApi.loginPost({ loginRequest: postParams });
-		console.log(s);
-	};
+    const signin = async () => {
+        const postParams = LoginRequestFromJSON({
+            username: email,
+            password: password
+        });
 
-	const signup = async () => {
-		const postParams = SignupRequestFromJSON({
-			username: name,
-			email,
-			password
-		});
-		const s = await authApi.signupPost({ signupRequest: postParams });
-		console.log(s);
-	};
+        try {
+            const response = await authApi.loginPost({ loginRequest: postParams });
+            const {access, refresh} = response;
+
+
+            error = ''; // Clear error on successful login
+        } catch (e: any) {
+			console.table(e)
+            error = e.message || 'An error occurred during sign in';
+        }
+    };
+
+    const signup = async () => {
+        const postParams = SignupRequestFromJSON({
+            username: name,
+            email,
+            password
+        });
+
+        try {
+            const response = await authApi.signupPost({ signupRequest: postParams });
+            error = ''; // Clear error on successful signup
+        } catch (e: any) {
+			console.table(e)
+            error = e.message || 'An error occurred during sign up';
+        }
+    };
 </script>
 
 <div class="flex min-h-screen items-center justify-center bg-gray-100">
-	<div class="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
-		<h2 class="mb-6 text-center text-2xl font-bold">
-			{#if isSignUp}
-				Sign Up
-			{:else}
-				Sign In
-			{/if}
-		</h2>
-		<form>
-			{#if isSignUp}
-				<div class="mb-4">
-					<label class="mb-2 block text-sm font-bold text-gray-700" for="name">Name</label>
-					<input
-						class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
-						id="name"
-						type="text"
-						placeholder="Name"
-						bind:value={name}
-					/>
-				</div>
-			{/if}
-			<div class="mb-4">
-				<label class="mb-2 block text-sm font-bold text-gray-700" for="email">Email</label>
-				<input
-					class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
-					id="email"
-					type="email"
-					placeholder="Email"
-					bind:value={email}
-				/>
-			</div>
-			<div class="mb-6">
-				<label class="mb-2 block text-sm font-bold text-gray-700" for="password">Password</label>
-				<input
-					class="focus:shadow-outline mb-3 w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
-					id="password"
-					type="password"
-					placeholder="Password"
-					bind:value={password}
-				/>
-			</div>
-			<div class="flex items-center justify-between">
-				<button
-					class="focus:shadow-outline rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
-					type="button"
-					on:click={isSignUp ? signup : signin}
-				>
-					{#if isSignUp}
-						Sign Up
-					{:else}
-						Sign In
-					{/if}
-				</button>
-				<button
-					class="inline-block cursor-pointer align-baseline text-sm font-bold text-blue-500 hover:text-blue-800"
-					on:click={toggleAuthMode}
-				>
-					{#if isSignUp}
-						Already have an account? Sign In
-					{:else}
-						Don't have an account? Sign Up
-					{/if}
-				</button>
-			</div>
-		</form>
-	</div>
+    <div class="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
+        <h2 class="mb-6 text-center text-2xl font-bold">
+            {#if isSignUp}
+                Sign Up
+            {:else}
+                Sign In
+            {/if}
+        </h2>
+        {#if error}
+            <div class="mb-4 text-red-500">
+                {error}
+            </div>
+        {/if}
+        <form>
+            {#if isSignUp}
+                <div class="mb-4">
+                    <label class="mb-2 block text-sm font-bold text-gray-700" for="name">Name</label>
+                    <input
+                        class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
+                        id="name"
+                        type="text"
+                        placeholder="Name"
+                        bind:value={name}
+                    />
+                </div>
+            {/if}
+            <div class="mb-4">
+                <label class="mb-2 block text-sm font-bold text-gray-700" for="email">Email</label>
+                <input
+                    class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
+                    id="email"
+                    type="email"
+                    placeholder="Email"
+                    bind:value={email}
+                />
+            </div>
+            <div class="mb-6">
+                <label class="mb-2 block text-sm font-bold text-gray-700" for="password">Password</label>
+                <input
+                    class="focus:shadow-outline mb-3 w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
+                    id="password"
+                    type="password"
+                    placeholder="Password"
+                    bind:value={password}
+                />
+            </div>
+            <div class="flex items-center justify-between">
+                <button
+                    class="focus:shadow-outline rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
+                    type="button"
+                    on:click={isSignUp ? signup : signin}
+                >
+                    {#if isSignUp}
+                        Sign Up
+                    {:else}
+                        Sign In
+                    {/if}
+                </button>
+                <button
+                    class="inline-block cursor-pointer align-baseline text-sm font-bold text-blue-500 hover:text-blue-800"
+                    on:click={toggleAuthMode}
+                >
+                    {#if isSignUp}
+                        Already have an account? Sign In
+                    {:else}
+                        Don't have an account? Sign Up
+                    {/if}
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
