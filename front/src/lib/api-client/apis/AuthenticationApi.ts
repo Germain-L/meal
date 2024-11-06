@@ -19,7 +19,6 @@ import type {
   RefreshPost200Response,
   RefreshRequest,
   SignupRequest,
-  TokenResponse,
   User,
 } from '../models/index';
 import {
@@ -31,8 +30,6 @@ import {
     RefreshRequestToJSON,
     SignupRequestFromJSON,
     SignupRequestToJSON,
-    TokenResponseFromJSON,
-    TokenResponseToJSON,
     UserFromJSON,
     UserToJSON,
 } from '../models/index';
@@ -57,7 +54,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
     /**
      * Authenticate user and get tokens
      */
-    async loginPostRaw(requestParameters: LoginPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TokenResponse>> {
+    async loginPostRaw(requestParameters: LoginPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters['loginRequest'] == null) {
             throw new runtime.RequiredError(
                 'loginRequest',
@@ -79,15 +76,14 @@ export class AuthenticationApi extends runtime.BaseAPI {
             body: LoginRequestToJSON(requestParameters['loginRequest']),
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => TokenResponseFromJSON(jsonValue));
+        return new runtime.VoidApiResponse(response);
     }
 
     /**
      * Authenticate user and get tokens
      */
-    async loginPost(requestParameters: LoginPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TokenResponse> {
-        const response = await this.loginPostRaw(requestParameters, initOverrides);
-        return await response.value();
+    async loginPost(requestParameters: LoginPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.loginPostRaw(requestParameters, initOverrides);
     }
 
     /**
