@@ -14,7 +14,7 @@
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
 		"generate-client": "openapi-generator-cli generate -i ../meal/swagger.yaml -g typescript-fetch -o src/lib/api-client",
-		"start": "vite build && node ./build/index.js"
+		"start": "node ./build/index.js"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
