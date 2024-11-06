@@ -1,7 +1,7 @@
 import { Configuration, AuthenticationApi, SystemApi, UserApi } from '$lib/api-client';
 
 const config = new Configuration({
-    basePath: 'https://meal-production.up.railway.app'
+    basePath: import.meta.env.VITE_API_BASE_PATH,
 });
 
 export const authApi = new AuthenticationApi(config);
