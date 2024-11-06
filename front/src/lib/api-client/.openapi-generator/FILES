@@ -1,0 +1,17 @@
+.openapi-generator-ignore
+apis/AuthenticationApi.ts
+apis/SystemApi.ts
+apis/UserApi.ts
+apis/index.ts
+index.ts
+models/HealthResponse.ts
+models/LoginRequest.ts
+models/ModelError.ts
+models/PingResponse.ts
+models/RefreshPost200Response.ts
+models/RefreshRequest.ts
+models/SignupRequest.ts
+models/TokenResponse.ts
+models/User.ts
+models/index.ts
+runtime.ts
