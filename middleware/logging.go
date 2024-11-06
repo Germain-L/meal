@@ -4,14 +4,50 @@ import (
 	"log"
 	"meals/utils"
 	"net/http"
+	"os"
 	"time"
 )
+
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
+}
+
+func isErrorStatus(code int) bool {
+	return code >= 400
+}
 
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		next.ServeHTTP(w, r)
+
+		rw := &responseWriter{
+			ResponseWriter: w,
+			statusCode:     http.StatusOK,
+		}
+
+		next.ServeHTTP(rw, r)
 		end := time.Since(start)
-		log.Println(r.Method, r.URL.Path, utils.ConvertTime(end))
+
+		logEntry := "%s %s %d %s"
+		args := []interface{}{
+			r.Method,
+			r.URL.Path,
+			rw.statusCode,
+			utils.ConvertTime(end),
+		}
+
+		if isErrorStatus(rw.statusCode) {
+			log.SetOutput(os.Stderr)
+			log.Printf("[ERROR] "+logEntry+" Headers: %v", append(args, r.Header)...)
+		} else {
+			log.SetOutput(os.Stdout)
+			log.Printf("[INFO] "+logEntry, args...)
+		}
 	})
 }
