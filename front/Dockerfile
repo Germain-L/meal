@@ -2,12 +2,14 @@ FROM node:23-alpine
 
 WORKDIR /app
 
-COPY package.json /app
+RUN npm i -g pnpm
 
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
 
-COPY . /app
+RUN pnpm ci
 
-RUN npm run build
+COPY . ./
+
+RUN pnpm run build
 
 ENTRYPOINT [ "node", "build/index.js" ]
