@@ -14,7 +14,6 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 var env = os.Getenv("ENV")
@@ -50,13 +49,6 @@ func setupRoutes(h *handlers.Handler) http.Handler {
 	mux.HandleFunc("/refresh", h.Refresh)
 	mux.HandleFunc("/healthz", h.Healthz)
 	mux.HandleFunc("/ping", h.Ping)
-
-	// Add Swagger UI for non-prod environments
-	if env != "production" {
-		mux.HandleFunc("/swagger/*", httpSwagger.Handler(
-			httpSwagger.URL("/swagger/doc.json"),
-		))
-	}
 
 	// Protected routes
 	protectedMux := http.NewServeMux()
