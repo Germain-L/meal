@@ -24,7 +24,7 @@ func setupLogger() {
 }
 
 func Connect(ctx context.Context) *db.Queries {
-	if env != "production" {
+	if env == "development" {
 		err := godotenv.Load()
 		if err != nil {
 			log.Fatal("Error loading .env file")
