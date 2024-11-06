@@ -13,15 +13,26 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
+
+var env = os.Getenv("ENV")
 
 func setupLogger() {
 	log.Default().SetOutput(os.Stdout)
 }
 
 func Connect(ctx context.Context) *db.Queries {
+	if env != "production" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+	}
+
 	connString := os.Getenv("DATABASE_URL")
+	log.Printf("Connecting to database: %s\n", connString)
 	pool, err := pgxpool.New(ctx, connString)
 	if err != nil {
 		log.Fatalf("Unable to create connection pool: %v\n", err)
@@ -41,7 +52,7 @@ func setupRoutes(h *handlers.Handler) http.Handler {
 	mux.HandleFunc("/ping", h.Ping)
 
 	// Add Swagger UI for non-prod environments
-	if os.Getenv("ENV") != "production" {
+	if env != "production" {
 		mux.HandleFunc("/swagger/*", httpSwagger.Handler(
 			httpSwagger.URL("/swagger/doc.json"),
 		))
@@ -97,6 +108,8 @@ func main() {
 
 	handler := setupRoutes(h)
 	server := createServer(handler)
+
+	log.Printf("Starting server in %s mode", env)
 
 	go startServer(server)
 	gracefulShutdown(server)
