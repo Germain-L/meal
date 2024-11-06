@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	infoLogger  = log.New(os.Stdout, "[INFO] ", log.LstdFlags)
-	errorLogger = log.New(os.Stderr, "[ERROR] ", log.LstdFlags)
+	InfoLogger  = log.New(os.Stdout, "[INFO] ", log.LstdFlags)
+	ErrorLogger = log.New(os.Stderr, "[ERROR] ", log.LstdFlags)
 )
 
 type responseWriter struct {
@@ -48,9 +48,9 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		}
 
 		if isErrorStatus(rw.statusCode) {
-			errorLogger.Printf(logEntry+" Headers: %v", append(args, r.Header)...)
+			ErrorLogger.Printf(logEntry+" Headers: %v", append(args, r.Header)...)
 		} else {
-			infoLogger.Printf(logEntry, args...)
+			InfoLogger.Printf(logEntry, args...)
 		}
 	})
 }
