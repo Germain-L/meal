@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"meals/db"
 	"meals/handlers"
@@ -12,6 +13,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file" // This was missing
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -94,12 +98,45 @@ func startServer(server *http.Server) {
 	}
 }
 
+func runMigrations() error {
+	connString := os.Getenv("DATABASE_URL")
+	db, err := sql.Open("postgres", connString)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://sql/migrations",
+		"postgres",
+		driver,
+	)
+	if err != nil {
+		return err
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+
+	return nil
+}
+
 func main() {
 	setupLogger()
 
+	// Run migrations first
+	if err := runMigrations(); err != nil {
+		log.Printf("Migration failed: %v", err) // Changed from Fatal to Print to allow fallback behavior
+	}
+
 	queries := Connect(context.Background())
 	h := handlers.NewHandler(queries)
-
 	handler := setupRoutes(h)
 	server := createServer(handler)
 
