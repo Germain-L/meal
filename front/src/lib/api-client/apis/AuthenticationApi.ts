@@ -67,7 +67,7 @@ export interface SignupPostRequest {
 export class AuthenticationApi extends runtime.BaseAPI {
 
     /**
-     * Authenticate user and get tokens
+     * Authenticate user using email and get tokens
      */
     async loginPostRaw(requestParameters: LoginPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters['loginRequest'] == null) {
@@ -95,7 +95,7 @@ export class AuthenticationApi extends runtime.BaseAPI {
     }
 
     /**
-     * Authenticate user and get tokens
+     * Authenticate user using email and get tokens
      */
     async loginPost(requestParameters: LoginPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.loginPostRaw(requestParameters, initOverrides);

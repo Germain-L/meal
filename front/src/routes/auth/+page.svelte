@@ -22,7 +22,7 @@
 				});
 			} else {
 				await AuthService.login({
-					username: email,
+					email,
 					password
 				});
 			}

@@ -24,7 +24,7 @@ export interface LoginRequest {
      * @type {string}
      * @memberof LoginRequest
      */
-    username: string;
+    email: string;
     /**
      * 
      * @type {string}
@@ -37,7 +37,7 @@ export interface LoginRequest {
  * Check if a given object implements the LoginRequest interface.
  */
 export function instanceOfLoginRequest(value: object): value is LoginRequest {
-    if (!('username' in value) || value['username'] === undefined) return false;
+    if (!('email' in value) || value['email'] === undefined) return false;
     if (!('password' in value) || value['password'] === undefined) return false;
     return true;
 }
@@ -52,7 +52,7 @@ export function LoginRequestFromJSONTyped(json: any, ignoreDiscriminator: boolea
     }
     return {
         
-        'username': json['username'],
+        'email': json['email'],
         'password': json['password'],
     };
 }
@@ -68,7 +68,7 @@ export function LoginRequestFromJSONTyped(json: any, ignoreDiscriminator: boolea
 
     return {
         
-        'username': value['username'],
+        'email': value['email'],
         'password': value['password'],
     };
 }
