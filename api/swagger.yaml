@@ -39,15 +39,16 @@ components:
     LoginRequest:
       type: object
       properties:
-        username:
+        email:
           type: string
-          example: "johndoe"
+          format: email
+          example: "john@example.com"
         password:
           type: string
           format: password
           example: "securepassword123"
       required:
-        - username
+        - email
         - password
 
     SignupRequest:
@@ -179,7 +180,7 @@ paths:
 
   /login:
     post:
-      summary: Authenticate user and get tokens
+      summary: Authenticate user using email and get tokens
       tags:
         - Authentication
       requestBody:
