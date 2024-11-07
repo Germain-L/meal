@@ -1,55 +1,34 @@
 <script lang="ts">
-	import { authApi } from '$lib/api';
-	import { LoginRequestFromJSON, ResponseError, SignupRequestFromJSON } from '$lib/api-client';
+	import { AuthService } from '$lib/services/auth';
+	import { auth } from '$lib/stores/auth';
 
 	let isSignUp = false;
-
-	function toggleAuthMode() {
-		isSignUp = !isSignUp;
-	}
-
-	let name = '';
+	let username = '';
 	let email = '';
 	let password = '';
-	let error = '';
 
-	const signin = async () => {
-		try {
-			const loginRequest = LoginRequestFromJSON({ username: email, password });
-			await authApi.loginPost({ loginRequest });
-			// Handle successful sign in
-		} catch (err) {
-			if (err instanceof ResponseError) {
-				const responseText = await err.response.text();
-				try {
-					const errorContext = JSON.parse(responseText);
-					error = errorContext.error || 'An error occurred during sign in.';
-				} catch {
-					error = responseText || 'An error occurred during sign in.';
-				}
-			} else {
-				error = 'An unexpected error occurred.';
-			}
-		}
+	const toggleAuthMode = () => {
+		isSignUp = !isSignUp;
+		$auth.error = null;
 	};
 
-	const signup = async () => {
+	const handleSubmit = async () => {
 		try {
-			const signupRequest = SignupRequestFromJSON({ name, username: email, password });
-			await authApi.signupPost({ signupRequest });
-			// Handle successful sign up
-		} catch (err) {
-			if (err instanceof ResponseError) {
-				const responseText = await err.response.text();
-				try {
-					const errorContext = JSON.parse(responseText);
-					error = errorContext.error || 'An error occurred during sign up.';
-				} catch {
-					error = responseText || 'An error occurred during sign up.';
-				}
+			if (isSignUp) {
+				await AuthService.signup({
+					username,
+					email,
+					password
+				});
 			} else {
-				error = 'An unexpected error occurred.';
+				await AuthService.login({
+					username: email,
+					password
+				});
 			}
+		} catch (err) {
+			// Error is handled by AuthService
+			console.error('Auth error:', err);
 		}
 	};
 </script>
@@ -57,71 +36,74 @@
 <div class="flex min-h-screen items-center justify-center bg-gray-100">
 	<div class="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
 		<h2 class="mb-6 text-center text-2xl font-bold">
-			{#if isSignUp}
-				Sign Up
-			{:else}
-				Sign In
-			{/if}
+			{isSignUp ? 'Sign Up' : 'Sign In'}
 		</h2>
-		{#if error}
-			<div class="mb-4 text-red-500">
-				{error}
+
+		{#if $auth.error}
+			<div class="mb-4 rounded bg-red-100 p-3 text-red-700">
+				{$auth.error}
 			</div>
 		{/if}
-		<form>
+
+		<form on:submit|preventDefault={handleSubmit}>
 			{#if isSignUp}
 				<div class="mb-4">
-					<label class="mb-2 block text-sm font-bold text-gray-700" for="name">Name</label>
+					<label class="mb-2 block text-sm font-bold text-gray-700" for="name"> Name </label>
 					<input
+						bind:value={username}
 						class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
 						id="name"
 						type="text"
 						placeholder="Name"
-						bind:value={name}
+						required
 					/>
 				</div>
 			{/if}
+
 			<div class="mb-4">
-				<label class="mb-2 block text-sm font-bold text-gray-700" for="email">Email</label>
+				<label class="mb-2 block text-sm font-bold text-gray-700" for="email"> Email </label>
 				<input
+					bind:value={email}
 					class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
 					id="email"
 					type="email"
 					placeholder="Email"
-					bind:value={email}
+					required
 				/>
 			</div>
+
 			<div class="mb-6">
-				<label class="mb-2 block text-sm font-bold text-gray-700" for="password">Password</label>
+				<label class="mb-2 block text-sm font-bold text-gray-700" for="password"> Password </label>
 				<input
+					bind:value={password}
 					class="focus:shadow-outline mb-3 w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
 					id="password"
 					type="password"
 					placeholder="Password"
-					bind:value={password}
+					required
 				/>
 			</div>
+
 			<div class="flex items-center justify-between">
 				<button
-					class="focus:shadow-outline rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
-					type="button"
-					on:click={isSignUp ? signup : signin}
+					class="focus:shadow-outline rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none disabled:opacity-50"
+					type="submit"
+					disabled={$auth.loading}
 				>
-					{#if isSignUp}
-						Sign Up
+					{#if $auth.loading}
+						<span class="inline-block animate-spin">↻</span>
 					{:else}
-						Sign In
+						{isSignUp ? 'Sign Up' : 'Sign In'}
 					{/if}
 				</button>
+
 				<button
-					class="inline-block cursor-pointer align-baseline text-sm font-bold text-blue-500 hover:text-blue-800"
+					type="button"
+					class="inline-block align-baseline text-sm font-bold text-blue-500 hover:text-blue-800"
 					on:click={toggleAuthMode}
+					disabled={$auth.loading}
 				>
-					{#if isSignUp}
-						Already have an account? Sign In
-					{:else}
-						Don't have an account? Sign Up
-					{/if}
+					{isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
 				</button>
 			</div>
 		</form>
