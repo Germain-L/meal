@@ -1,0 +1,19 @@
+meta {
+  name: Signup
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base}}/signup
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "gmn",
+    "email": "germain.leignel@gmail.com",
+    "password": "abc"
+  }
+}
