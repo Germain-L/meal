@@ -26,3 +26,8 @@ RETURNING *;
 
 -- name: HealthCheck :one
 SELECT 1;
+
+-- name: GetUserByEmail :one
+SELECT *
+FROM users
+WHERE email = $1;
